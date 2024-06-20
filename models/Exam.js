@@ -1,21 +1,25 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const questionSchema = new Schema({
+  soru_id: { type: Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId(), index: true },
+  soru_tipi: { type: String, required: true, enum: ['test', 'klasik', 'kod'] },
+  soru_metni: { type: String, required: true },
+  cevaplar: [String], // Only for 'test'
+  dogru_cevap: String, // Only for 'test'
+  puan: { type: Number, required: true }
+});
+
 const examSchema = new Schema({
   type: { type: String, required: true, enum: ['public', 'private'] },
-  subjectCode: { type: String, required: true },
-  subjectName: { type: String, required: true },
-  examName: { type: String, required: true },
-  createdBy: { type: Schema.Types.ObjectId, ref: 'Teacher' },
-  questions: [{
-    type: { type: String, required: true, enum: ['test', 'classic', 'code'] },
-    text: { type: String, required: true },
-    options: [String], // Only for 'test'
-    correctAnswer: String, // Only for 'test'
-    points: Number
-  }],
-  duration: Number,
-  group: { type: Schema.Types.ObjectId, ref: 'Group' } // Only if private
+  ders_kodu: { type: String, required: true },
+  ders_adi: { type: String, required: true },
+  test_adi: { type: String, required: true },
+  hazirlayan_id: { type: Schema.Types.ObjectId, ref: 'Teacher', required: true },
+  sorular: [questionSchema],
+  sinav_suresi: { type: Number, required: true },
+  grup_id: { type: Schema.Types.ObjectId, ref: 'Group', default: null },
+  cozumler: [{ type: Schema.Types.ObjectId, ref: 'Solution' }]
 });
 
 module.exports = mongoose.model('Exam', examSchema);

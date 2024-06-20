@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const groupSchema = new Schema({
-  name: { type: String, required: true },
+  grup_adi: { type: String, required: true },  
   type: { type: String, required: true, enum: ['public', 'private'] },
-  createdBy: { type: Schema.Types.ObjectId, ref: 'Teacher' },
-  members: [{ type: Schema.Types.ObjectId, ref: 'Student' }],
-  exams: [{ type: Schema.Types.ObjectId, ref: 'Exam' }]
-});
+  olusturan_id: { type: Schema.Types.ObjectId, ref: 'Teacher' }, 
+  uyeler: [{ type: Schema.Types.ObjectId, ref: 'Student' }],    
+  sinavlar: [{ type: Schema.Types.ObjectId, ref: 'Exam' }]      
+}, { versionKey: false });
 
 module.exports = mongoose.model('Group', groupSchema);
