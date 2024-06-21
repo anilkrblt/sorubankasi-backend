@@ -10,9 +10,12 @@ const studentSchema = new Schema({
   hash_sifre: { type: String, required: true },
   gruplar: [{ type: Schema.Types.ObjectId, ref: 'Group' }],
   cozulen_sinavlar: [{
-    sinavlar: { type: Schema.Types.ObjectId, ref: 'Exam' },
-    cevaplar: [String],
-    puan: Number
+    examId: mongoose.Schema.Types.ObjectId,
+    ders_kodu: String,
+    sinav_adi: String,
+    sorular: Array,
+    cevaplar: Array,
+    cozulme_tarihi: Date
   }]
 },  { versionKey: false });
 

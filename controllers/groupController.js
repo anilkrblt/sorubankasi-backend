@@ -1,25 +1,23 @@
 const Group = require('../models/Group');
 const Student = require('../models/Student');
 
-exports.createGroup = async (req, res) => {
-  if (req.user.role !== "teacher") {
-    return res.status(403).send("Access denied.");
-  }
-  const { grup_adi, type } = req.body;
 
-  const group = new Group({
-    grup_adi,
-    type,
-    olusturan_id: req.user._id,
-    uyeler: [],
-    sinavlar: [],
-  });
+exports.createGroup = async (req, res) => {
+  const { grup_adi, sinavlar, uyeler, olusturan_id, type } = req.body;
 
   try {
-    await group.save();
-    res.status(201).send("Group created.");
+    const newGroup = new Group({
+      grup_adi,
+      sinavlar,
+      uyeler,
+      olusturan_id,
+      type,
+    });
+
+    const savedGroup = await newGroup.save();
+    res.status(201).json({ group: savedGroup });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).json({ error: 'Grup oluşturulamadı.' });
   }
 };
 
@@ -53,7 +51,6 @@ exports.addStudentToGroup = async (req, res) => {
     res.status(400).send(error.message);
   }
 };
-
 exports.removeStudentFromGroup = async (req, res) => {
   if (req.user.role !== "teacher") {
     return res.status(403).send("Access denied.");
@@ -82,7 +79,6 @@ exports.removeStudentFromGroup = async (req, res) => {
     res.status(400).send(error.message);
   }
 };
-
 exports.updateGroup = async (req, res) => {
   if (req.user.role !== "teacher") {
     return res.status(403).send("Access denied.");
@@ -104,7 +100,6 @@ exports.updateGroup = async (req, res) => {
     res.status(400).send(error.message);
   }
 };
-
 exports.deleteGroup = async (req, res) => {
   if (req.user.role !== "teacher") {
     return res.status(403).send("Access denied.");

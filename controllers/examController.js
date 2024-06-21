@@ -1,13 +1,14 @@
-const Exam = require('../models/Exam');
-const Group = require('../models/Group');
-const mongoose = require('mongoose');
+const Exam = require("../models/Exam");
+const Group = require("../models/Group");
+const Student = require("../models/Student");
+const mongoose = require("mongoose");
 
-// Create a new exam
 exports.createExam = async (req, res) => {
   if (req.user.role !== "teacher") {
     return res.status(403).send("Access denied.");
   }
-  const { ders_kodu, ders_adi, test_adi, sorular, sinav_suresi, grup_id } = req.body;
+  const { ders_kodu, ders_adi, test_adi, sorular, sinav_suresi, grup_id } =
+    req.body;
 
   const exam = new Exam({
     type: grup_id ? "private" : "public",
@@ -37,8 +38,6 @@ exports.createExam = async (req, res) => {
     res.status(400).send(error.message);
   }
 };
-
-// Delete an exam
 exports.deleteExam = async (req, res) => {
   if (req.user.role !== "teacher") {
     return res.status(403).send("Access denied.");
@@ -67,8 +66,6 @@ exports.deleteExam = async (req, res) => {
     res.status(400).send(error.message);
   }
 };
-
-// Update an exam
 exports.updateExam = async (req, res) => {
   if (req.user.role !== "teacher") {
     return res.status(403).send("Access denied.");
@@ -91,12 +88,15 @@ exports.updateExam = async (req, res) => {
     if (sorular) {
       sorular.forEach((newQuestion) => {
         const questionIndex = exam.sorular.findIndex(
-          q => q._id && q._id.toString() === newQuestion.soru_id
+          (q) => q._id && q._id.toString() === newQuestion.soru_id
         );
-        
+
         if (questionIndex > -1) {
           // Var olan bir soruyu güncelle
-          exam.sorular[questionIndex] = { ...exam.sorular[questionIndex], ...newQuestion };
+          exam.sorular[questionIndex] = {
+            ...exam.sorular[questionIndex],
+            ...newQuestion,
+          };
         } else {
           // Yeni bir soru ekle
           if (!newQuestion.soru_id) {
@@ -107,15 +107,49 @@ exports.updateExam = async (req, res) => {
       });
 
       // Silinecek soruları kontrol et
-      exam.sorular = exam.sorular.filter(existingQuestion =>
-        sorular.some(newQuestion =>
-          newQuestion.soru_id && newQuestion.soru_id.toString() === existingQuestion._id.toString()
+      exam.sorular = exam.sorular.filter((existingQuestion) =>
+        sorular.some(
+          (newQuestion) =>
+            newQuestion.soru_id &&
+            newQuestion.soru_id.toString() === existingQuestion._id.toString()
         )
       );
     }
 
     await exam.save();
     res.status(200).send("Exam updated.");
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+};
+exports.submitExam = async (req, res) => {
+  const { examId, answers, userId } = req.body;
+  
+  try {
+    const exam = await Exam.findById(examId);
+    if (!exam) {
+      return res.status(404).send("Exam not found.");
+    }
+
+    const result = {
+      examId,
+      ders_kodu: exam.ders_kodu,
+      sinav_adi: exam.test_adi,
+      sorular: exam.sorular,
+      cevaplar: answers,
+      cozulme_tarihi: new Date(),
+    };
+
+    // Öğrencinin çözülen sınavlarına sonucu ekleyin
+    const student = await Student.findById(userId);
+    
+    if (!student) {
+      return res.status(404).send("Student not found.");
+    }
+    student.cozulen_sinavlar.push(result);
+    await student.save();
+
+    res.status(200).send("Exam submitted successfully.");
   } catch (error) {
     res.status(400).send(error.message);
   }
