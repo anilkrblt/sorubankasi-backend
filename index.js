@@ -9,12 +9,13 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const examRoutes = require("./routes/examRoutes");
 const groupRoutes = require("./routes/groupRoutes");
+const studentRoutes = require("./routes/studentRoutes")
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: 'http://localhost:3000', // React uygulamanızın adresi
+  origin: 'http://localhost:3000', 
   credentials: true
 }));
 
@@ -22,7 +23,7 @@ app.use(session({
   secret: 'yourSecretKey',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // secure: true, only if you are using https
+  cookie: { secure: false } 
 }));
 
 app.use(bodyParser.json());
@@ -35,7 +36,8 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
-
+ 
+app.use('/api/students', studentRoutes)
 app.use('/api/auth', authRoutes);
 app.use("/api/exams", examRoutes);
 app.use("/api/groups", groupRoutes);

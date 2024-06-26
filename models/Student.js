@@ -15,7 +15,8 @@ const studentSchema = new Schema({
     sinav_adi: String,
     sorular: Array,
     cevaplar: Array,
-    cozulme_tarihi: Date
+    cozulme_tarihi: Date,
+    puan: Number
   }]
 },  { versionKey: false });
 

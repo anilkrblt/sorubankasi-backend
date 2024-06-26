@@ -108,7 +108,6 @@ exports.login = async (req, res) => {
       if (user instanceof Student) {
         cozulen_sinavlar = user.cozulen_sinavlar || [];
       }
-      // Oturum oluşturma
       req.session.user = {
         _id: user._id,
         role: "student",
@@ -130,7 +129,6 @@ exports.login = async (req, res) => {
         if (user instanceof Teacher) {
           hazirlanan_sinavlar = user.hazirlanan_sinavlar || [];
         }
-        // Oturum oluşturma
         req.session.user = {
           _id: user._id,
           role: "teacher",

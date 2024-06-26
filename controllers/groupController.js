@@ -1,23 +1,57 @@
-const Group = require('../models/Group');
-const Student = require('../models/Student');
-
+const Group = require("../models/Group");
+const Student = require("../models/Student");
+const Teacher = require("../models/Teacher");
 
 exports.createGroup = async (req, res) => {
   const { grup_adi, sinavlar, uyeler, olusturan_id, type } = req.body;
+  console.log(uyeler);
 
   try {
+    const studentIds = await Promise.all(
+      uyeler.map(async (uye) => {
+        const student = await Student.findOne({
+          ogrenci_no: uye.ogrenci_no.studentNumber,
+        });
+        if (!student) {
+          throw new Error(
+            `Öğrenci numarası ${uye.ogrenci_no} olan öğrenci bulunamadı.`
+          );
+        }
+        return student._id;
+      })
+    );
+
     const newGroup = new Group({
       grup_adi,
-      sinavlar,
-      uyeler,
-      olusturan_id,
       type,
+      olusturan_id,
+      uyeler: studentIds || [],
+      sinavlar,
     });
 
     const savedGroup = await newGroup.save();
+
+    await Promise.all(
+      studentIds.map(async (studentId) => {
+        await Student.findByIdAndUpdate(
+          studentId,
+          { $push: { gruplar: savedGroup._id } },
+          { new: true, useFindAndModify: false }
+        );
+      })
+    );
+
+    await Teacher.findByIdAndUpdate(
+      olusturan_id,
+      { $push: { olusturulan_gruplar: savedGroup._id } },
+      { new: true, useFindAndModify: false }
+    );
+
+
     res.status(201).json({ group: savedGroup });
   } catch (error) {
-    res.status(400).json({ error: 'Grup oluşturulamadı.' });
+    console.error(error);
+    res.status(400).json({ error: "Grup oluşturulamadı." });
   }
 };
 
