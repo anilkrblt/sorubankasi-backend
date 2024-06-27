@@ -28,32 +28,27 @@ exports.createExam = async (req, res) => {
     cozumler: [],
   });
 
-  console.log("Creating exam with data:", exam);
 
   try {
     await exam.save();
-    console.log("Exam saved successfully:", exam);
 
     const user = await Teacher.findById(hazirlayan_id);
     if (!user) {
-      throw new Error("Teacher not found");
+      throw new Error("Öğretmen bulunamadı");
     }
     user.hazirlanan_sinavlar.push(exam._id);
     await user.save();
-    console.log("Teacher updated successfully:", user);
 
     if (grup_id) {
       const group = await Group.findById(grup_id);
       if (group) {
         group.sinavlar.push(exam._id);
         await group.save();
-        console.log("Group updated successfully:", group);
       }
     }
 
     res.status(201).send({ message: "Sınav oluşturuldu.", exam });
   } catch (error) {
-    console.error("Error creating exam:", error);
     res.status(400).send({
       message: "Sınav oluşturmada hata meydana geldi",
       error: error.message,
@@ -62,7 +57,7 @@ exports.createExam = async (req, res) => {
 };
 exports.deleteExam = async (req, res) => {
   if (req.user.role !== "teacher") {
-    return res.status(403).send("Access denied.");
+    return res.status(403).send("Erişim reddedildi.");
   }
 
   const { examId } = req.params;
@@ -70,10 +65,9 @@ exports.deleteExam = async (req, res) => {
   try {
     const exam = await Exam.findById(examId);
     if (!exam) {
-      return res.status(404).send("Exam not found.");
+      return res.status(404).send("Sınav bulunamadı.");
     }
 
-    // Eğer sınav bir gruba aitse, sınavı gruptan da kaldırın
     if (exam.grup_id) {
       const group = await Group.findById(exam.grup_id);
       if (group) {
@@ -83,7 +77,7 @@ exports.deleteExam = async (req, res) => {
     }
 
     await exam.remove();
-    res.status(200).send("Exam deleted.");
+    res.status(200).send("Sınav başarıyla silindi.");
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -115,7 +109,7 @@ exports.submitExam = async (req, res) => {
   try {
     const exam = await Exam.findById(examId);
     if (!exam) {
-      return res.status(404).send("Exam not found.");
+      return res.status(404).send("Sınav bulunamadı.");
     }
 
     const result = {
@@ -128,16 +122,15 @@ exports.submitExam = async (req, res) => {
       puan: -1,
     };
 
-    // Öğrencinin çözülen sınavlarına sonucu ekleyin
     const student = await Student.findById(userId);
 
     if (!student) {
-      return res.status(404).send("Student not found.");
+      return res.status(404).send("Öğrenci bulunamadı.");
     }
     student.cozulen_sinavlar.push(result);
     await student.save();
 
-    res.status(200).send("Exam submitted successfully.");
+    res.status(200).send("Sınav başarıyla gönderildi.");
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -146,7 +139,6 @@ exports.submitExam = async (req, res) => {
 exports.fetchExam = async (req, res) => {
   const { examIds } = req.query;
   const examIdArray = examIds ? examIds.split(",") : [];
-  console.log(examIdArray);
 
   if (examIdArray.length === 0) {
     return res.status(400).send({ message: "Geçersiz sınav ID'leri." });
